@@ -1,0 +1,191 @@
+// ============================================================================
+// Protocol: EclipseLend
+// Description: Zero-Knowledge Private Underwriting & Credit Score Access Protocol
+// Target Network: Midnight Preprod (Level-3 Privacy Compliant)
+// Language: Compact
+// ============================================================================
+
+pragma language_version >= 0.20.0;
+
+import CompactStandardLibrary;
+
+// Enum defining approved underwriting credit tiers
+export enum CreditTier {
+    Unqualified,
+    Silver,
+    Gold,
+    Platinum
+}
+
+// ----------------------------------------------------------------------------
+// Public Ledger State (Accessible transparently on Midnight Explorer)
+// ----------------------------------------------------------------------------
+export ledger poolLiquidity: Uint<64>;
+export ledger totalVerifiedBorrowers: Counter;
+export ledger silverBorrowersCount: Counter;
+export ledger goldBorrowersCount: Counter;
+export ledger platinumBorrowersCount: Counter;
+export ledger totalLoansDisbursed: Uint<64>;
+export ledger verifiedBorrowerTiers: Map<Bytes<32>, CreditTier>;
+export ledger activeLoanBalances: Map<Bytes<32>, Uint<64>>;
+export ledger isPoolInitialized: Boolean;
+
+// ----------------------------------------------------------------------------
+// Private Witness Declaration (Kept strictly on client machine / never revealed)
+// ----------------------------------------------------------------------------
+export struct FinancialProfile {
+    creditScore: Uint<16>,
+    reserveAssetsUSD: Uint<64>,
+    monthlyIncomeUSD: Uint<32>,
+    monthlyDebtUSD: Uint<32>,
+    identitySalt: Bytes<32>
+}
+
+// Private witness function injected by local client prover
+witness getBorrowerFinancials(): FinancialProfile;
+
+// ----------------------------------------------------------------------------
+// Circuits (Zero-Knowledge Verified Transitions)
+// ----------------------------------------------------------------------------
+
+/**
+ * @notice Initializes the lending pool with liquidity and defaults
+ */
+export circuit initializePool(initialLiquidityUSD: Uint<64>): Void {
+    assert !isPoolInitialized "Pool has already been initialized";
+    assert initialLiquidityUSD > 0 "Initial liquidity must be positive";
+
+    poolLiquidity = initialLiquidityUSD;
+    isPoolInitialized = true;
+}
+
+/**
+ * @notice Adds capital to the shared liquidity vault
+ */
+export circuit depositLiquidity(depositAmountUSD: Uint<64>): Void {
+    assert depositAmountUSD > 0 "Deposit amount must be greater than zero";
+    poolLiquidity = poolLiquidity + depositAmountUSD;
+}
+
+/**
+ * @notice Evaluates borrower credit eligibility in ZK using private witness
+ * @dev Discloses ONLY the evaluated tier and unique borrower nullifier.
+ *      Raw credit score, net worth, income, and debt NEVER touch the ledger.
+ */
+export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
+    // 1. Ingest private financial witness from client local state
+    const profile = getBorrowerFinancials();
+
+    // 2. Validate witness data bounds & integrity
+    assert profile.creditScore >= 300 && profile.creditScore <= 850 "Credit score out of valid range (300-850)";
+    assert profile.monthlyIncomeUSD > 0 "Monthly income must be strictly positive";
+
+    // Compute Debt-To-Income (DTI) ratio percentage scaled by 100: (debt * 100) / income
+    const dtiRatio = (profile.monthlyDebtUSD as Uint<64> * 100) / (profile.monthlyIncomeUSD as Uint<64>);
+
+    // 3. Multi-tier Underwriting Logic:
+    // Platinum: Score >= 780 AND Reserves >= $50,000 AND DTI <= 25%
+    // Gold:     Score >= 720 AND Reserves >= $20,000 AND DTI <= 35%
+    // Silver:   Score >= 650 AND Reserves >= $5,000  AND DTI <= 45%
+    var evaluatedTier = CreditTier.Unqualified;
+
+    if (profile.creditScore >= 780 && profile.reserveAssetsUSD >= 50000 && dtiRatio <= 25) {
+        evaluatedTier = CreditTier.Platinum;
+    } else if (profile.creditScore >= 720 && profile.reserveAssetsUSD >= 20000 && dtiRatio <= 35) {
+        evaluatedTier = CreditTier.Gold;
+    } else if (profile.creditScore >= 650 && profile.reserveAssetsUSD >= 5000 && dtiRatio <= 45) {
+        evaluatedTier = CreditTier.Silver;
+    } else {
+        evaluatedTier = CreditTier.Unqualified;
+    }
+
+    assert evaluatedTier != CreditTier.Unqualified "Borrower does not meet minimum risk underwriting criteria";
+
+    // 4. Deliberate Selective Disclosure:
+    // Only reveal the verified tier outcome and the anonymous nullifier to the validator
+    const publicTier = disclose(evaluatedTier);
+    const publicNullifier = disclose(borrowerNullifier);
+
+    // 5. Update Public Ledger Statistics
+    verifiedBorrowerTiers.insert(publicNullifier, publicTier);
+    totalVerifiedBorrowers.increment(1);
+
+    if (publicTier == CreditTier.Platinum) {
+        platinumBorrowersCount.increment(1);
+    } else if (publicTier == CreditTier.Gold) {
+        goldBorrowersCount.increment(1);
+    } else if (publicTier == CreditTier.Silver) {
+        silverBorrowersCount.increment(1);
+    }
+
+    return publicTier;
+}
+
+/**
+ * @notice Executes an underwritten loan draw against approved tier limit
+ */
+export circuit requestLoan(
+    borrowerNullifier: Bytes<32>, 
+    requestedAmountUSD: Uint<64>
+): Boolean {
+    const publicNullifier = disclose(borrowerNullifier);
+    const publicAmount = disclose(requestedAmountUSD);
+
+    // Ensure borrower has been verified
+    const tier = verifiedBorrowerTiers.lookup(publicNullifier);
+    assert tier != CreditTier.Unqualified "Borrower has no verified credit tier on record";
+
+    // Determine max credit allocation per tier
+    // Platinum: $500,000 max
+    // Gold:     $100,000 max
+    // Silver:   $25,000 max
+    var maxAllowance: Uint<64> = 0;
+    if (tier == CreditTier.Platinum) {
+        maxAllowance = 500000;
+    } else if (tier == CreditTier.Gold) {
+        maxAllowance = 100000;
+    } else if (tier == CreditTier.Silver) {
+        maxAllowance = 25000;
+    }
+
+    // Check existing active debt + requested amount <= maxAllowance
+    const currentDebt = activeLoanBalances.member(publicNullifier) 
+        ? activeLoanBalances.lookup(publicNullifier) 
+        : 0;
+
+    assert currentDebt + publicAmount <= maxAllowance "Requested amount exceeds credit tier maximum borrowing capacity";
+    assert publicAmount <= poolLiquidity "Insufficient liquidity available in lending pool";
+
+    // Execute state transitions
+    poolLiquidity = poolLiquidity - publicAmount;
+    totalLoansDisbursed = totalLoansDisbursed + publicAmount;
+    activeLoanBalances.insert(publicNullifier, currentDebt + publicAmount);
+
+    return true;
+}
+
+/**
+ * @notice Repays an active loan balance and restores pool liquidity
+ */
+export circuit repayLoan(
+    borrowerNullifier: Bytes<32>, 
+    repayAmountUSD: Uint<64>
+): Boolean {
+    const publicNullifier = disclose(borrowerNullifier);
+    const publicAmount = disclose(repayAmountUSD);
+
+    assert activeLoanBalances.member(publicNullifier) "No active loan record for given nullifier";
+    const currentDebt = activeLoanBalances.lookup(publicNullifier);
+    assert publicAmount > 0 "Repay amount must be greater than zero";
+    assert publicAmount <= currentDebt "Repay amount exceeds outstanding loan balance";
+
+    const newDebt = currentDebt - publicAmount;
+    if (newDebt == 0) {
+        activeLoanBalances.remove(publicNullifier);
+    } else {
+        activeLoanBalances.insert(publicNullifier, newDebt);
+    }
+
+    poolLiquidity = poolLiquidity + publicAmount;
+    return true;
+}
