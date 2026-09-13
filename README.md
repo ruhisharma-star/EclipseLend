@@ -174,15 +174,30 @@ npm run build
 
 ---
 
-## 🧪 Test Suite Specifications
+## 🧪 Testing Coverage & Verification
 
-The test suite in [`tests/eclipse_lend.test.ts`](tests/eclipse_lend.test.ts) covers:
-1. **Platinum Tier Qualification:** Asserts Score $\ge 780$, Reserves $\ge \$50\text{k}$, and $\text{DTI} \le 25\%$.
-2. **Gold Tier Qualification:** Asserts Score $\ge 720$, Reserves $\ge \$20\text{k}$, and $\text{DTI} \le 35\%$.
-3. **Silver Tier Qualification:** Asserts Score $\ge 650$, Reserves $\ge \$5\text{k}$, and $\text{DTI} \le 45\%$.
-4. **Rejection Handling:** Ensures subprime scores ($<650$) or high DTI ($>45\%$) fail gracefully without leaking or modifying ledger state.
-5. **Strict Privacy Model Isolation:** Asserts that sensitive witness fields (exact income, score, salt) never appear in ledger state transitions.
-6. **Tier-Based Borrow Caps:** Enforces maximum borrowing capacity per tier and tests loan repayment cycles.
+EclipseLend includes a comprehensive Vitest unit and integration test suite ([`tests/eclipse_lend.test.ts`](tests/eclipse_lend.test.ts)) covering ZK witness isolation, underwriting thresholds, and tier limits:
+
+| Test Case | Description | Result |
+| :--- | :--- | :---: |
+| **Test 1: Platinum Tier Qualification** | Asserts Score $\ge 780$, Reserves $\ge \$50\text{k}$, and $\text{DTI} \le 25\%$. | ✅ Passed |
+| **Test 2: Gold Tier Qualification** | Asserts Score $\ge 720$, Reserves $\ge \$20\text{k}$, and $\text{DTI} \le 35\%$. | ✅ Passed |
+| **Test 3: Silver Tier Qualification** | Asserts Score $\ge 650$, Reserves $\ge \$5\text{k}$, and $\text{DTI} \le 45\%$. | ✅ Passed |
+| **Test 4: Rejection Handling** | Ensures subprime scores ($<650$) or high DTI ($>45\%$) fail gracefully without polluting ledger state. | ✅ Passed |
+| **Test 5: Strict Witness Privacy Isolation** | Asserts sensitive witness fields (exact income, score, salt) never appear in ledger state transitions. | ✅ Passed |
+| **Test 6: Tier Borrow Limits & Repay** | Enforces maximum borrowing capacity per tier ($500k Platinum, $100k Gold, $25k Silver) and tests loan repayment cycles. | ✅ Passed |
+
+### 📸 Test Suite Execution Verification
+![EclipseLend Unit & Integration Test Results](image.png)
+
+---
+
+## 🔄 CI/CD Automated Pipeline
+
+EclipseLend includes a comprehensive GitHub Actions workflow that automatically validates Compact smart contract syntax, runs all unit/integration tests, and compiles the Next.js production build on every push and pull request.
+
+### 📸 GitHub Actions CI/CD Pipeline Run
+![EclipseLend GitHub Actions CI/CD Pipeline Passed](image-1.png)
 
 ---
 
