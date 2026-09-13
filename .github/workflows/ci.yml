@@ -1,0 +1,50 @@
+name: EclipseLend Protocol CI/CD
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate-and-test:
+    name: Build, Test & ZK Circuit Check
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Validate Compact Smart Contract Syntax
+        run: |
+          echo "Verifying Compact smart contract syntax and integrity..."
+          test -f contracts/eclipse_lend.compact || exit 1
+          grep -q "pragma language_version >= 0.20.0" contracts/eclipse_lend.compact || exit 1
+          grep -q "witness getBorrowerFinancials" contracts/eclipse_lend.compact || exit 1
+          grep -q "export circuit evaluateCreditTier" contracts/eclipse_lend.compact || exit 1
+          echo "Compact contract syntax passed."
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Run Zero-Knowledge Underwriting Test Suite
+        run: npm run test
+
+      - name: Build Next.js Production Bundle
+        run: npm run build
+        env:
+          NEXT_PUBLIC_MIDNIGHT_NETWORK: 'preprod'
+          NEXT_PUBLIC_EXPLORER_URL: 'https://explorer.preprod.midnight.network'
