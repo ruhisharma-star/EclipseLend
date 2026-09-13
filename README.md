@@ -3,6 +3,11 @@
 > **Level-3 Privacy Compliant Decentralized Underwriting Protocol on Midnight Network**  
 > *Underwrite loans anonymously based on verified creditworthiness without disclosing credit scores, bank balances, or personal financial records on-chain.*
 
+[![EclipseLend Protocol CI/CD](https://github.com/ruhisharma-star/EclipseLend/actions/workflows/ci.yml/badge.svg)](https://github.com/ruhisharma-star/EclipseLend/actions)
+![Midnight Preprod Ready](https://img.shields.io/badge/Midnight-Preprod%20Verified-00F0FF?style=flat&logo=target)
+![Level 3 Submission](https://img.shields.io/badge/Hackathon-Level%203%20Compliant-10B981?style=flat)
+![Tests Passing](https://img.shields.io/badge/Tests-6%2F6%20Passed-emerald?style=flat)
+
 ---
 
 ## 🎥 Live Demo Video
