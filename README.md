@@ -12,6 +12,13 @@
 
 ---
 
+## 🌐 Live Demo & Web Application
+
+- **Live dApp URL:** [EclipseLend | Zero-Knowledge Private Underwriting Protocol](https://eclipse-lend.vercel.app/)
+- **Network Compatibility:** Midnight Preprod (Lace Wallet / Simulator)
+
+---
+
 ## 🔗 Midnight Preprod Deployment & Contract Identifiers
 
 | Parameter | Value / Endpoint |
