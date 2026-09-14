@@ -29,10 +29,10 @@
 | Parameter | Value / Endpoint |
 | :--- | :--- |
 | **Network Target** | **Midnight Preprod (Testnet)** |
-| **Canonical Contract ID** | [`02005a3f91c8e01299834d6712398bfa79c0281bfe44210a99c0471289de6102`](https://explorer.preprod.midnight.network/contract/02005a3f91c8e01299834d6712398bfa79c0281bfe44210a99c0471289de6102) |
+| **Canonical Contract ID** | [`1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722`](https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
 | **Smart Contract Source** | [`contract/eclipse_lend.compact`](contract/eclipse_lend.compact) |
-| **Block Explorer** | [https://explorer.preprod.midnight.network/contract/02005a3f91c8e01299834d6712398bfa79c0281bfe44210a99c0471289de6102](https://explorer.preprod.midnight.network/contract/02005a3f91c8e01299834d6712398bfa79c0281bfe44210a99c0471289de6102) |
-| **GraphQL Indexer URI** | `https://indexer.preprod.midnight.network/api/v1/graphql` |
+| **Block Explorer** | [https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722](https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
+| **GraphQL Indexer URI** | `https://indexer.preprod.midnight.network/api/v4/graphql` |
 | **Prover Server URI** | `http://localhost:6300` |
 | **Node RPC Endpoint** | `https://rpc.preprod.midnight.network` |
 

@@ -24,8 +24,14 @@ async function githubRequest(endpoint) {
 }
 
 async function monitor() {
-  const runId = '34835240215';
-  console.log(`Monitoring Deploy to Preprod (Run ID: ${runId})...`);
+  const runs = await githubRequest(`/repos/${owner}/${repo}/actions/workflows/deploy.yml/runs`);
+  if (!runs.workflow_runs || runs.workflow_runs.length === 0) {
+    console.error('No runs found for deploy.yml');
+    return;
+  }
+  const latestRun = runs.workflow_runs[0];
+  const runId = latestRun.id;
+  console.log(`Monitoring Deploy to Preprod (Run ID: ${runId}, URL: ${latestRun.html_url})...`);
 
   for (let i = 0; i < 90; i++) {
     const run = await githubRequest(`/repos/${owner}/${repo}/actions/runs/${runId}`);

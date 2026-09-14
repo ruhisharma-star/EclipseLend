@@ -18,7 +18,7 @@ export const MIDNIGHT_CONFIG: MidnightNetworkConfig = {
   nodeUri: process.env.NEXT_PUBLIC_MIDNIGHT_NODE_URI || 'https://rpc.preprod.midnight.network',
   provingServerUri: process.env.NEXT_PUBLIC_MIDNIGHT_PROVING_SERVER_URI || 'http://localhost:6300',
   // Midnight Canonical Contract Address (Level-3 Private Underwriting Protocol on Preprod)
-  contractAddress: process.env.NEXT_PUBLIC_MIDNIGHT_CONTRACT_ADDRESS || '02005a3f91c8e01299834d6712398bfa79c0281bfe44210a99c0471289de6102',
+  contractAddress: process.env.NEXT_PUBLIC_MIDNIGHT_CONTRACT_ADDRESS || '1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722',
   contractName: 'EclipseLendProtocol',
-  explorerUrl: 'https://explorer.preprod.midnight.network/contract',
+  explorerUrl: 'https://preprod.midnight.network/contract',
 };
