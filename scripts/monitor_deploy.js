@@ -24,7 +24,7 @@ async function githubRequest(endpoint) {
 }
 
 async function monitor() {
-  const runId = '34834713774';
+  const runId = '34834856012';
   console.log(`Monitoring Deploy to Preprod (Run ID: ${runId})...`);
 
   for (let i = 0; i < 90; i++) {
@@ -58,10 +58,16 @@ async function monitor() {
 
         if (conclusion === 'success') {
           console.log('\n📜 DEPLOYMENT LOG OUTPUT:');
+          const lines = logText.split('\n');
+          const relevant = lines.filter(l => l.includes('CONTRACT') || l.includes('Explorer') || l.includes('SUCCESS') || l.includes('Address'));
+          console.log(relevant.join('\n'));
+
           const contractMatch = logText.match(/CONTRACT_ADDRESS=(.*)/) || logText.match(/Contract Address: (.*)/);
           if (contractMatch) {
+            console.log('\n======================================================');
             console.log('📜 DEPLOYED CONTRACT ADDRESS:', contractMatch[1]);
             console.log('🔗 MIDNIGHT EXPLORER URL:', `https://explorer.preprod.midnight.network/contract/${contractMatch[1]}`);
+            console.log('======================================================');
           }
         } else {
           console.log('\n❌ FAILED LOG OUTPUT:');

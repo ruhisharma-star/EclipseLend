@@ -87,17 +87,13 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     // Platinum: Score >= 780 AND Reserves >= $50,000 AND DTI <= 25% (scaledDebt <= 25 * income)
     // Gold:     Score >= 720 AND Reserves >= $20,000 AND DTI <= 35% (scaledDebt <= 35 * income)
     // Silver:   Score >= 650 AND Reserves >= $5,000  AND DTI <= 45% (scaledDebt <= 45 * income)
-    var evaluatedTier: CreditTier = CreditTier.Unqualified;
-
-    if (profile.creditScore >= 780 && profile.reserveAssetsUSD >= 50000 && scaledDebt <= 25 * profile.monthlyIncomeUSD) {
-        evaluatedTier = CreditTier.Platinum;
-    } else if (profile.creditScore >= 720 && profile.reserveAssetsUSD >= 20000 && scaledDebt <= 35 * profile.monthlyIncomeUSD) {
-        evaluatedTier = CreditTier.Gold;
-    } else if (profile.creditScore >= 650 && profile.reserveAssetsUSD >= 5000 && scaledDebt <= 45 * profile.monthlyIncomeUSD) {
-        evaluatedTier = CreditTier.Silver;
-    } else {
-        evaluatedTier = CreditTier.Unqualified;
-    }
+    const evaluatedTier = (profile.creditScore >= 780 && profile.reserveAssetsUSD >= 50000 && scaledDebt <= 25 * profile.monthlyIncomeUSD)
+        ? CreditTier.Platinum
+        : (profile.creditScore >= 720 && profile.reserveAssetsUSD >= 20000 && scaledDebt <= 35 * profile.monthlyIncomeUSD)
+        ? CreditTier.Gold
+        : (profile.creditScore >= 650 && profile.reserveAssetsUSD >= 5000 && scaledDebt <= 45 * profile.monthlyIncomeUSD)
+        ? CreditTier.Silver
+        : CreditTier.Unqualified;
 
     assert(evaluatedTier != CreditTier.Unqualified, "Borrower does not meet minimum risk underwriting criteria");
 
@@ -139,14 +135,13 @@ export circuit requestLoan(
     // Platinum: $500,000 max
     // Gold:     $100,000 max
     // Silver:   $25,000 max
-    var maxAllowance: Uint<64> = 0;
-    if (tier == CreditTier.Platinum) {
-        maxAllowance = 500000;
-    } else if (tier == CreditTier.Gold) {
-        maxAllowance = 100000;
-    } else if (tier == CreditTier.Silver) {
-        maxAllowance = 25000;
-    }
+    const maxAllowance = (tier == CreditTier.Platinum)
+        ? 500000
+        : (tier == CreditTier.Gold)
+        ? 100000
+        : (tier == CreditTier.Silver)
+        ? 25000
+        : 0;
 
     // Check existing active debt + requested amount <= maxAllowance
     const currentDebt = activeLoanBalances.member(publicNullifier) 
