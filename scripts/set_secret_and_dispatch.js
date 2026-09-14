@@ -2,7 +2,11 @@ const sodium = require('tweetsodium');
 const fs = require('fs');
 const path = require('path');
 
-const SEED_PHRASE = 'please enjoy bread milk lady devote female ancient hollow split quit east rich cable job grass bounce enter rule tip grocery pear visa chimney';
+const bip39 = require('bip39');
+
+const MNEMONIC = 'please enjoy bread milk lady devote female ancient hollow split quit east rich cable job grass bounce enter rule tip grocery pear visa chimney';
+const SEED_PHRASE = bip39.mnemonicToEntropy(MNEMONIC);
+console.log('Derived 32-byte master seed entropy:', SEED_PHRASE);
 
 let token = process.env.GITHUB_TOKEN;
 const envLocalPath = path.resolve(__dirname, '..', '.env.local');

@@ -18,10 +18,18 @@ import { unshieldedToken } from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import { FaucetClient } from '@midnight-ntwrk/testkit-js';
 import * as Rx from 'rxjs';
 
+import * as bip39 from 'bip39';
+
 async function main() {
   console.log("Starting deployment to Preprod...");
-  const seed = process.env.WALLET_SEED;
-  if (!seed) throw new Error("WALLET_SEED environment variable is required");
+  let rawSeed = process.env.WALLET_SEED?.trim();
+  if (!rawSeed) throw new Error("WALLET_SEED environment variable is required");
+
+  let seed = rawSeed;
+  if (rawSeed.includes(' ')) {
+    console.log("24-word Mnemonic detected. Converting to 32-byte master seed entropy...");
+    seed = bip39.mnemonicToEntropy(rawSeed);
+  }
   
   const config = new PreprodRemoteConfig();
   const logger = await createLogger(config.logDir, false);
