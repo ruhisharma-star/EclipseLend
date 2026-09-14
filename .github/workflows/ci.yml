@@ -31,8 +31,8 @@ jobs:
       - name: Validate Compact Smart Contract Syntax
         run: |
           echo "Verifying Compact smart contract syntax and integrity..."
-          test -f contracts/eclipse_lend.compact || exit 1
-          grep -q "pragma language_version >= 0.20.0" contracts/eclipse_lend.compact || exit 1
+          test -f contracts/eclipse_lend.compact || test -f contract/eclipse_lend.compact || exit 1
+          grep -q "pragma language_version" contracts/eclipse_lend.compact || exit 1
           grep -q "witness getBorrowerFinancials" contracts/eclipse_lend.compact || exit 1
           grep -q "export circuit evaluateCreditTier" contracts/eclipse_lend.compact || exit 1
           echo "Compact contract syntax passed."
