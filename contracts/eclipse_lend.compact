@@ -80,20 +80,20 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     assert(profile.creditScore >= 300 && profile.creditScore <= 850, "Credit score out of valid range (300-850)");
     assert(profile.monthlyIncomeUSD > 0, "Monthly income must be strictly positive");
 
-    // Compute Debt-To-Income (DTI) ratio percentage: (debt * 100) / income
-    const dtiRatio = (profile.monthlyDebtUSD * 100) / profile.monthlyIncomeUSD;
+    // Compute Debt-To-Income (DTI) ratio check without division: (debt * 100) <= (threshold * income)
+    const scaledDebt = profile.monthlyDebtUSD * 100;
 
     // 3. Multi-tier Underwriting Logic:
-    // Platinum: Score >= 780 AND Reserves >= $50,000 AND DTI <= 25%
-    // Gold:     Score >= 720 AND Reserves >= $20,000 AND DTI <= 35%
-    // Silver:   Score >= 650 AND Reserves >= $5,000  AND DTI <= 45%
+    // Platinum: Score >= 780 AND Reserves >= $50,000 AND DTI <= 25% (scaledDebt <= 25 * income)
+    // Gold:     Score >= 720 AND Reserves >= $20,000 AND DTI <= 35% (scaledDebt <= 35 * income)
+    // Silver:   Score >= 650 AND Reserves >= $5,000  AND DTI <= 45% (scaledDebt <= 45 * income)
     var evaluatedTier: CreditTier = CreditTier.Unqualified;
 
-    if (profile.creditScore >= 780 && profile.reserveAssetsUSD >= 50000 && dtiRatio <= 25) {
+    if (profile.creditScore >= 780 && profile.reserveAssetsUSD >= 50000 && scaledDebt <= 25 * profile.monthlyIncomeUSD) {
         evaluatedTier = CreditTier.Platinum;
-    } else if (profile.creditScore >= 720 && profile.reserveAssetsUSD >= 20000 && dtiRatio <= 35) {
+    } else if (profile.creditScore >= 720 && profile.reserveAssetsUSD >= 20000 && scaledDebt <= 35 * profile.monthlyIncomeUSD) {
         evaluatedTier = CreditTier.Gold;
-    } else if (profile.creditScore >= 650 && profile.reserveAssetsUSD >= 5000 && dtiRatio <= 45) {
+    } else if (profile.creditScore >= 650 && profile.reserveAssetsUSD >= 5000 && scaledDebt <= 45 * profile.monthlyIncomeUSD) {
         evaluatedTier = CreditTier.Silver;
     } else {
         evaluatedTier = CreditTier.Unqualified;

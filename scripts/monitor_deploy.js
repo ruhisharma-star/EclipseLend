@@ -24,7 +24,7 @@ async function githubRequest(endpoint) {
 }
 
 async function monitor() {
-  const runId = '34834512120';
+  const runId = '34834713774';
   console.log(`Monitoring Deploy to Preprod (Run ID: ${runId})...`);
 
   for (let i = 0; i < 90; i++) {
@@ -46,10 +46,7 @@ async function monitor() {
             console.log(`  - ${step.name} (${step.conclusion})`);
           });
         });
-      }
 
-      if (conclusion === 'success') {
-        console.log('\nFetching deployment logs & contract address...');
         const jobId = jobs.jobs[0].id;
         const logRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/jobs/${jobId}/logs`, {
           headers: {
@@ -58,10 +55,18 @@ async function monitor() {
           }
         });
         const logText = await logRes.text();
-        const contractMatch = logText.match(/CONTRACT_ADDRESS=(.*)/) || logText.match(/Contract Address: (.*)/);
-        if (contractMatch) {
-          console.log('📜 DEPLOYED CONTRACT ADDRESS:', contractMatch[1]);
-          console.log('🔗 MIDNIGHT EXPLORER URL:', `https://explorer.preprod.midnight.network/contract/${contractMatch[1]}`);
+
+        if (conclusion === 'success') {
+          console.log('\n📜 DEPLOYMENT LOG OUTPUT:');
+          const contractMatch = logText.match(/CONTRACT_ADDRESS=(.*)/) || logText.match(/Contract Address: (.*)/);
+          if (contractMatch) {
+            console.log('📜 DEPLOYED CONTRACT ADDRESS:', contractMatch[1]);
+            console.log('🔗 MIDNIGHT EXPLORER URL:', `https://explorer.preprod.midnight.network/contract/${contractMatch[1]}`);
+          }
+        } else {
+          console.log('\n❌ FAILED LOG OUTPUT:');
+          const lines = logText.split('\n');
+          console.log(lines.slice(-60).join('\n'));
         }
       }
       return;
