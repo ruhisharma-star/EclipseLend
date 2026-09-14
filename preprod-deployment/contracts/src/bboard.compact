@@ -5,7 +5,7 @@
 // Language: Compact
 // ============================================================================
 
-pragma language_version >= 0.20.0;
+pragma language_version >= 0.15;
 
 import CompactStandardLibrary;
 
@@ -51,9 +51,9 @@ witness getBorrowerFinancials(): FinancialProfile;
 /**
  * @notice Initializes the lending pool with liquidity and defaults
  */
-export circuit initializePool(initialLiquidityUSD: Uint<64>): Void {
-    assert !isPoolInitialized "Pool has already been initialized";
-    assert initialLiquidityUSD > 0 "Initial liquidity must be positive";
+export circuit initializePool(initialLiquidityUSD: Uint<64>): [] {
+    assert(!isPoolInitialized, "Pool has already been initialized");
+    assert(initialLiquidityUSD > 0, "Initial liquidity must be positive");
 
     poolLiquidity = initialLiquidityUSD;
     isPoolInitialized = true;
@@ -62,8 +62,8 @@ export circuit initializePool(initialLiquidityUSD: Uint<64>): Void {
 /**
  * @notice Adds capital to the shared liquidity vault
  */
-export circuit depositLiquidity(depositAmountUSD: Uint<64>): Void {
-    assert depositAmountUSD > 0 "Deposit amount must be greater than zero";
+export circuit depositLiquidity(depositAmountUSD: Uint<64>): [] {
+    assert(depositAmountUSD > 0, "Deposit amount must be greater than zero");
     poolLiquidity = poolLiquidity + depositAmountUSD;
 }
 
@@ -77,8 +77,8 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     const profile = getBorrowerFinancials();
 
     // 2. Validate witness data bounds & integrity
-    assert profile.creditScore >= 300 && profile.creditScore <= 850 "Credit score out of valid range (300-850)";
-    assert profile.monthlyIncomeUSD > 0 "Monthly income must be strictly positive";
+    assert(profile.creditScore >= 300 && profile.creditScore <= 850, "Credit score out of valid range (300-850)");
+    assert(profile.monthlyIncomeUSD > 0, "Monthly income must be strictly positive");
 
     // Compute Debt-To-Income (DTI) ratio percentage scaled by 100: (debt * 100) / income
     const dtiRatio = (profile.monthlyDebtUSD as Uint<64> * 100) / (profile.monthlyIncomeUSD as Uint<64>);
@@ -87,7 +87,7 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     // Platinum: Score >= 780 AND Reserves >= $50,000 AND DTI <= 25%
     // Gold:     Score >= 720 AND Reserves >= $20,000 AND DTI <= 35%
     // Silver:   Score >= 650 AND Reserves >= $5,000  AND DTI <= 45%
-    var evaluatedTier = CreditTier.Unqualified;
+    var evaluatedTier: CreditTier = CreditTier.Unqualified;
 
     if (profile.creditScore >= 780 && profile.reserveAssetsUSD >= 50000 && dtiRatio <= 25) {
         evaluatedTier = CreditTier.Platinum;
@@ -99,7 +99,7 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
         evaluatedTier = CreditTier.Unqualified;
     }
 
-    assert evaluatedTier != CreditTier.Unqualified "Borrower does not meet minimum risk underwriting criteria";
+    assert(evaluatedTier != CreditTier.Unqualified, "Borrower does not meet minimum risk underwriting criteria");
 
     // 4. Deliberate Selective Disclosure:
     // Only reveal the verified tier outcome and the anonymous nullifier to the validator
@@ -133,7 +133,7 @@ export circuit requestLoan(
 
     // Ensure borrower has been verified
     const tier = verifiedBorrowerTiers.lookup(publicNullifier);
-    assert tier != CreditTier.Unqualified "Borrower has no verified credit tier on record";
+    assert(tier != CreditTier.Unqualified, "Borrower has no verified credit tier on record");
 
     // Determine max credit allocation per tier
     // Platinum: $500,000 max
@@ -153,8 +153,8 @@ export circuit requestLoan(
         ? activeLoanBalances.lookup(publicNullifier) 
         : 0;
 
-    assert currentDebt + publicAmount <= maxAllowance "Requested amount exceeds credit tier maximum borrowing capacity";
-    assert publicAmount <= poolLiquidity "Insufficient liquidity available in lending pool";
+    assert(currentDebt + publicAmount <= maxAllowance, "Requested amount exceeds credit tier maximum borrowing capacity");
+    assert(publicAmount <= poolLiquidity, "Insufficient liquidity available in lending pool");
 
     // Execute state transitions
     poolLiquidity = poolLiquidity - publicAmount;
@@ -174,10 +174,10 @@ export circuit repayLoan(
     const publicNullifier = disclose(borrowerNullifier);
     const publicAmount = disclose(repayAmountUSD);
 
-    assert activeLoanBalances.member(publicNullifier) "No active loan record for given nullifier";
+    assert(activeLoanBalances.member(publicNullifier), "No active loan record for given nullifier");
     const currentDebt = activeLoanBalances.lookup(publicNullifier);
-    assert publicAmount > 0 "Repay amount must be greater than zero";
-    assert publicAmount <= currentDebt "Repay amount exceeds outstanding loan balance";
+    assert(publicAmount > 0, "Repay amount must be greater than zero");
+    assert(publicAmount <= currentDebt, "Repay amount exceeds outstanding loan balance");
 
     const newDebt = currentDebt - publicAmount;
     if (newDebt == 0) {
