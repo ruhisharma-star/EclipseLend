@@ -32,9 +32,11 @@
 | **Canonical Contract ID** | [`1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722`](https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
 | **Smart Contract Source** | [`contract/eclipse_lend.compact`](contract/eclipse_lend.compact) |
 | **Block Explorer** | [https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722](https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
+| **DUST Registration Tx** | `0041e661005c5d2e29f0012b45a62a0217a2ad6330d903fc7dba1b7240362c81d5` |
 | **GraphQL Indexer URI** | `https://indexer.preprod.midnight.network/api/v4/graphql` |
 | **Prover Server URI** | `http://localhost:6300` |
 | **Node RPC Endpoint** | `https://rpc.preprod.midnight.network` |
+| **CI/CD Preprod Deploy Run** | [GitHub Actions Workflow #34836532558](https://github.com/ruhisharma-star/EclipseLend/actions/runs/34836532558) |
 
 ---
 
