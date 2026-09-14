@@ -36,8 +36,8 @@ export ledger isPoolInitialized: Boolean;
 export struct FinancialProfile {
     creditScore: Uint<16>,
     reserveAssetsUSD: Uint<64>,
-    monthlyIncomeUSD: Uint<32>,
-    monthlyDebtUSD: Uint<32>,
+    monthlyIncomeUSD: Uint<64>,
+    monthlyDebtUSD: Uint<64>,
     identitySalt: Bytes<32>
 }
 
@@ -80,8 +80,8 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     assert(profile.creditScore >= 300 && profile.creditScore <= 850, "Credit score out of valid range (300-850)");
     assert(profile.monthlyIncomeUSD > 0, "Monthly income must be strictly positive");
 
-    // Compute Debt-To-Income (DTI) ratio percentage scaled by 100: (debt * 100) / income
-    const dtiRatio = (profile.monthlyDebtUSD as Uint<64> * 100) / (profile.monthlyIncomeUSD as Uint<64>);
+    // Compute Debt-To-Income (DTI) ratio percentage: (debt * 100) / income
+    const dtiRatio = (profile.monthlyDebtUSD * 100) / profile.monthlyIncomeUSD;
 
     // 3. Multi-tier Underwriting Logic:
     // Platinum: Score >= 780 AND Reserves >= $50,000 AND DTI <= 25%
