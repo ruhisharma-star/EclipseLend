@@ -52,10 +52,11 @@ witness getBorrowerFinancials(): FinancialProfile;
  * @notice Initializes the lending pool with liquidity and defaults
  */
 export circuit initializePool(initialLiquidityUSD: Uint<64>): [] {
+    const publicInitial = disclose(initialLiquidityUSD);
     assert(!isPoolInitialized, "Pool has already been initialized");
-    assert(initialLiquidityUSD > 0, "Initial liquidity must be positive");
+    assert(publicInitial > 0, "Initial liquidity must be positive");
 
-    poolLiquidity = initialLiquidityUSD;
+    poolLiquidity = publicInitial;
     isPoolInitialized = true;
 }
 
@@ -63,8 +64,9 @@ export circuit initializePool(initialLiquidityUSD: Uint<64>): [] {
  * @notice Adds capital to the shared liquidity vault
  */
 export circuit depositLiquidity(depositAmountUSD: Uint<64>): [] {
-    assert(depositAmountUSD > 0, "Deposit amount must be greater than zero");
-    poolLiquidity = (poolLiquidity + depositAmountUSD) as Uint<64>;
+    const publicDeposit = disclose(depositAmountUSD);
+    assert(publicDeposit > 0, "Deposit amount must be greater than zero");
+    poolLiquidity = (poolLiquidity + publicDeposit) as Uint<64>;
 }
 
 /**
@@ -73,6 +75,8 @@ export circuit depositLiquidity(depositAmountUSD: Uint<64>): [] {
  *      Raw credit score, net worth, income, and debt NEVER touch the ledger.
  */
 export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
+    const publicNullifier = disclose(borrowerNullifier);
+    
     // 1. Ingest private financial witness from client local state
     const profile = getBorrowerFinancials();
 
@@ -100,7 +104,6 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     // 4. Deliberate Selective Disclosure:
     // Only reveal the verified tier outcome and the anonymous nullifier to the validator
     const publicTier = disclose(evaluatedTier);
-    const publicNullifier = disclose(borrowerNullifier);
 
     // 5. Update Public Ledger Statistics
     verifiedBorrowerTiers.insert(publicNullifier, publicTier);
