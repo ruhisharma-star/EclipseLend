@@ -24,7 +24,7 @@ async function githubRequest(endpoint) {
 }
 
 async function monitor() {
-  const runId = '34834856012';
+  const runId = '34834995975';
   console.log(`Monitoring Deploy to Preprod (Run ID: ${runId})...`);
 
   for (let i = 0; i < 90; i++) {
@@ -59,7 +59,7 @@ async function monitor() {
         if (conclusion === 'success') {
           console.log('\n📜 DEPLOYMENT LOG OUTPUT:');
           const lines = logText.split('\n');
-          const relevant = lines.filter(l => l.includes('CONTRACT') || l.includes('Explorer') || l.includes('SUCCESS') || l.includes('Address'));
+          const relevant = lines.filter(l => l.includes('CONTRACT') || l.includes('Explorer') || l.includes('SUCCESS') || l.includes('Address') || l.includes('https://'));
           console.log(relevant.join('\n'));
 
           const contractMatch = logText.match(/CONTRACT_ADDRESS=(.*)/) || logText.match(/Contract Address: (.*)/);

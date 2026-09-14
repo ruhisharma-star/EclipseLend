@@ -64,7 +64,7 @@ export circuit initializePool(initialLiquidityUSD: Uint<64>): [] {
  */
 export circuit depositLiquidity(depositAmountUSD: Uint<64>): [] {
     assert(depositAmountUSD > 0, "Deposit amount must be greater than zero");
-    poolLiquidity = poolLiquidity + depositAmountUSD;
+    poolLiquidity = (poolLiquidity + depositAmountUSD) as Uint<64>;
 }
 
 /**
@@ -80,7 +80,7 @@ export circuit evaluateCreditTier(borrowerNullifier: Bytes<32>): CreditTier {
     assert(profile.creditScore >= 300 && profile.creditScore <= 850, "Credit score out of valid range (300-850)");
     assert(profile.monthlyIncomeUSD > 0, "Monthly income must be strictly positive");
 
-    // Compute Debt-To-Income (DTI) ratio check without division: (debt * 100) <= (threshold * income)
+    // Compute Debt-To-Income (DTI) ratio check: (debt * 100) <= (threshold * income)
     const scaledDebt = profile.monthlyDebtUSD * 100;
 
     // 3. Multi-tier Underwriting Logic:
@@ -135,7 +135,7 @@ export circuit requestLoan(
     // Platinum: $500,000 max
     // Gold:     $100,000 max
     // Silver:   $25,000 max
-    const maxAllowance = (tier == CreditTier.Platinum)
+    const maxAllowance: Uint<64> = (tier == CreditTier.Platinum)
         ? 500000
         : (tier == CreditTier.Gold)
         ? 100000
@@ -144,17 +144,17 @@ export circuit requestLoan(
         : 0;
 
     // Check existing active debt + requested amount <= maxAllowance
-    const currentDebt = activeLoanBalances.member(publicNullifier) 
+    const currentDebt: Uint<64> = activeLoanBalances.member(publicNullifier) 
         ? activeLoanBalances.lookup(publicNullifier) 
         : 0;
 
-    assert(currentDebt + publicAmount <= maxAllowance, "Requested amount exceeds credit tier maximum borrowing capacity");
+    assert((currentDebt + publicAmount) <= maxAllowance, "Requested amount exceeds credit tier maximum borrowing capacity");
     assert(publicAmount <= poolLiquidity, "Insufficient liquidity available in lending pool");
 
     // Execute state transitions
-    poolLiquidity = poolLiquidity - publicAmount;
-    totalLoansDisbursed = totalLoansDisbursed + publicAmount;
-    activeLoanBalances.insert(publicNullifier, currentDebt + publicAmount);
+    poolLiquidity = (poolLiquidity - publicAmount) as Uint<64>;
+    totalLoansDisbursed = (totalLoansDisbursed + publicAmount) as Uint<64>;
+    activeLoanBalances.insert(publicNullifier, (currentDebt + publicAmount) as Uint<64>);
 
     return true;
 }
@@ -174,13 +174,13 @@ export circuit repayLoan(
     assert(publicAmount > 0, "Repay amount must be greater than zero");
     assert(publicAmount <= currentDebt, "Repay amount exceeds outstanding loan balance");
 
-    const newDebt = currentDebt - publicAmount;
+    const newDebt = (currentDebt - publicAmount) as Uint<64>;
     if (newDebt == 0) {
         activeLoanBalances.remove(publicNullifier);
     } else {
         activeLoanBalances.insert(publicNullifier, newDebt);
     }
 
-    poolLiquidity = poolLiquidity + publicAmount;
+    poolLiquidity = (poolLiquidity + publicAmount) as Uint<64>;
     return true;
 }
