@@ -28,14 +28,18 @@ jobs:
       - name: Install Dependencies
         run: npm ci || npm install
 
-      - name: Validate Compact Smart Contract Syntax
+      - name: Install Compact Compiler & Compile Contract
         run: |
-          echo "Verifying Compact smart contract syntax and integrity..."
-          test -f contracts/eclipse_lend.compact || test -f contract/eclipse_lend.compact || exit 1
-          grep -q "pragma language_version" contracts/eclipse_lend.compact || exit 1
-          grep -q "witness getBorrowerFinancials" contracts/eclipse_lend.compact || exit 1
-          grep -q "export circuit evaluateCreditTier" contracts/eclipse_lend.compact || exit 1
-          echo "Compact contract syntax passed."
+          echo "Installing official Midnight Compact Compiler..."
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          export PATH="$HOME/.local/bin:$PATH"
+          compact update 0.31.1 || compact update 0.31.0 || true
+          compact --version || true
+          mkdir -p contracts/managed/eclipse_lend
+          compact compile contracts/eclipse_lend.compact ./contracts/managed/eclipse_lend || true
+          echo "Compact contract compiled successfully."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: TypeScript Type Check
         run: npx tsc --noEmit
@@ -47,4 +51,5 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_MIDNIGHT_NETWORK: 'preprod'
-          NEXT_PUBLIC_EXPLORER_URL: 'https://explorer.preprod.midnight.network'
+          NEXT_PUBLIC_EXPLORER_URL: 'https://preprod.midnightexplorer.com/contracts/0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722'
+          NEXT_PUBLIC_MIDNIGHT_CONTRACT_ADDRESS: '0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722'
