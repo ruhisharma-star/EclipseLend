@@ -4,9 +4,17 @@
 > *Underwrite loans anonymously based on verified creditworthiness without disclosing credit scores, bank balances, or personal financial records on-chain.*
 
 [![EclipseLend Protocol CI/CD](https://github.com/ruhisharma-star/EclipseLend/actions/workflows/ci.yml/badge.svg)](https://github.com/ruhisharma-star/EclipseLend/actions)
-![Midnight Preprod Ready](https://img.shields.io/badge/Midnight-Preprod%20Verified-00F0FF?style=flat&logo=target)
-![Level 3 Submission](https://img.shields.io/badge/Hackathon-Level%203%20Compliant-10B981?style=flat)
-![Tests Passing](https://img.shields.io/badge/Tests-6%2F6%20Passed-emerald?style=flat)
+[![Midnight Explorer Verified](https://img.shields.io/badge/Midnight%20Explorer-0x1cabc3aa...-00F0FF?style=flat&logo=target)](https://preprod.midnightexplorer.com/contracts/0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722)
+[![Level 3 Submission](https://img.shields.io/badge/Hackathon-Level%203%20Compliant-10B981?style=flat)](PROPOSAL.md)
+[![Tests Passing](https://img.shields.io/badge/Tests-26%2F26%20Passed-emerald?style=flat)](tests/)
+[![Product Proposal](https://img.shields.io/badge/Proposal-PROPOSAL.md-blue?style=flat)](PROPOSAL.md)
+
+---
+
+## 📄 Level 3 Product Proposal Document
+
+- **Full Proposal & Architecture Specification:** 📑 **[Read PROPOSAL.md](PROPOSAL.md)**  
+  *(Detailed technical breakdown of the market problem, zero-knowledge witness boundary, selective disclosure mechanics, Compact circuit design, risk formulas, tokenomics, sybil defense, and roadmap).*
 
 ---
 
@@ -26,12 +34,12 @@
 
 ## 🔗 Midnight Preprod Deployment & Contract Identifiers
 
-| Parameter | Value / Endpoint |
+| Parameter | Value / Verified On-Chain Endpoint |
 | :--- | :--- |
 | **Network Target** | **Midnight Preprod (Testnet)** |
-| **Canonical Contract ID** | [`1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722`](https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
-| **Smart Contract Source** | [`contract/eclipse_lend.compact`](contract/eclipse_lend.compact) |
-| **Block Explorer** | [https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722](https://preprod.midnight.network/contract/1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
+| **Canonical Contract ID** | [`0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722`](https://preprod.midnightexplorer.com/contracts/0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
+| **Smart Contract Source** | [`contracts/eclipse_lend.compact`](contracts/eclipse_lend.compact) |
+| **Midnight Block Explorer** | [https://preprod.midnightexplorer.com/contracts/0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722](https://preprod.midnightexplorer.com/contracts/0x1cabc3aaed1c57db5eddcd1b24d7df1808ec7cb39ff266dfdfb14be93fe9e722) |
 | **DUST Registration Tx** | `0041e661005c5d2e29f0012b45a62a0217a2ad6330d903fc7dba1b7240362c81d5` |
 | **GraphQL Indexer URI** | `https://indexer.preprod.midnight.network/api/v4/graphql` |
 | **Prover Server URI** | `http://localhost:6300` |
@@ -190,16 +198,14 @@ npm run build
 
 ## 🧪 Testing Coverage & Verification
 
-EclipseLend includes a comprehensive Vitest unit and integration test suite ([`tests/eclipse_lend.test.ts`](tests/eclipse_lend.test.ts)) covering ZK witness isolation, underwriting thresholds, and tier limits:
+EclipseLend includes a comprehensive Vitest unit and integration test suite across **3 dedicated test modules** ([`tests/eclipse_lend.test.ts`](tests/eclipse_lend.test.ts), [`tests/privacy_disclosure.test.ts`](tests/privacy_disclosure.test.ts), and [`tests/underwriting_witness.test.ts`](tests/underwriting_witness.test.ts)) covering ZK witness isolation, selective disclosure, sybil nullifiers, and loan settlement:
 
-| Test Case | Description | Result |
+| Test Module | Coverage & Test Assertions | Status |
 | :--- | :--- | :---: |
-| **Test 1: Platinum Tier Qualification** | Asserts Score $\ge 780$, Reserves $\ge \$50\text{k}$, and $\text{DTI} \le 25\%$. | ✅ Passed |
-| **Test 2: Gold Tier Qualification** | Asserts Score $\ge 720$, Reserves $\ge \$20\text{k}$, and $\text{DTI} \le 35\%$. | ✅ Passed |
-| **Test 3: Silver Tier Qualification** | Asserts Score $\ge 650$, Reserves $\ge \$5\text{k}$, and $\text{DTI} \le 45\%$. | ✅ Passed |
-| **Test 4: Rejection Handling** | Ensures subprime scores ($<650$) or high DTI ($>45\%$) fail gracefully without polluting ledger state. | ✅ Passed |
-| **Test 5: Strict Witness Privacy Isolation** | Asserts sensitive witness fields (exact income, score, salt) never appear in ledger state transitions. | ✅ Passed |
-| **Test 6: Tier Borrow Limits & Repay** | Enforces maximum borrowing capacity per tier ($500k Platinum, $100k Gold, $25k Silver) and tests loan repayment cycles. | ✅ Passed |
+| **`tests/eclipse_lend.test.ts`** | Platinum/Gold/Silver qualification, subprime rejection, witness isolation, tier borrow caps ($500k, $100k, $25k). | ✅ 6/6 Passed |
+| **`tests/privacy_disclosure.test.ts`** | Deterministic nullifier derivation, non-colliding salts, zero leakage on failure, selective disclosure immutability, multi-borrower state counters. | ✅ 10/10 Passed |
+| **`tests/underwriting_witness.test.ts`** | Exact DTI mathematical boundary checks ($\le 25\%$), pool solvency protection, liquidity provider deposits, full loan repayment & active balance clearance. | ✅ 10/10 Passed |
+| **Total Test Suite** | **Comprehensive Zero-Knowledge Protocol Verification** | **✅ 26/26 Passed** |
 
 ### 📸 Test Suite Execution Verification
 ![EclipseLend Unit & Integration Test Results](image.png)
@@ -208,7 +214,11 @@ EclipseLend includes a comprehensive Vitest unit and integration test suite ([`t
 
 ## 🔄 CI/CD Automated Pipeline
 
-EclipseLend includes a comprehensive GitHub Actions workflow that automatically validates Compact smart contract syntax, runs all unit/integration tests, and compiles the Next.js production build on every push and pull request.
+EclipseLend includes an automated GitHub Actions CI/CD workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) that runs on every push to `main` and pull request:
+1. **Compact Compilation:** Installs official Midnight Compact compiler and executes `compact compile contracts/eclipse_lend.compact ./contracts/managed/eclipse_lend`.
+2. **Type Checking:** Runs strict TypeScript type checking (`npx tsc --noEmit`).
+3. **Automated Test Suite:** Runs all 26 zero-knowledge unit & integration tests with Vitest.
+4. **Production Build:** Builds and optimizes the Next.js production bundle.
 
 ### 📸 GitHub Actions CI/CD Pipeline Run
 ![EclipseLend GitHub Actions CI/CD Pipeline Passed](image-1.png)
@@ -218,7 +228,7 @@ EclipseLend includes a comprehensive GitHub Actions workflow that automatically 
 ## 📜 Compact Smart Contract Interface
 
 ```compact
-pragma language_version >= 0.20.0;
+pragma language_version >= 0.15;
 
 import CompactStandardLibrary;
 
