@@ -72,7 +72,7 @@ export const CryptographicCreditLog: React.FC<CryptographicCreditLogProps> = ({ 
                 {/* TX Hash */}
                 <td className="py-3.5 pr-4">
                   <a
-                    href={`https://explorer.preprod.midnight.network/tx/${entry.txHash}`}
+                    href={`https://preprod.midnightexplorer.com/tx/0x${entry.txHash}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center space-x-1.5 font-mono text-ice-300 hover:text-ice-200 transition"
